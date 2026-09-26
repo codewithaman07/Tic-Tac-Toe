@@ -4,30 +4,160 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tic Tac Toe</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <main>
-        <div id="msgContainer" class="msg-container hide">
-            <p id="msg">Winner</p>
-            <button id="new-btn">New Game</button>
-        </div>
-        <h1>Tic Tac Toe </h1>
-        <div class="container">
-            <div class="game">
-                <button class="box"></button>
-                <button class="box"></button>
-                <button class="box"></button>
-                <button class="box"></button>
-                <button class="box"></button>
-                <button class="box"></button>
-                <button class="box"></button>
-                <button class="box"></button>
-                <button class="box"></button>
+
+    <!-- Animated BG -->
+    <div class="bg-orbs">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <!-- ═══════════════ SCREEN 1: SETUP ═══════════════ -->
+    <div id="setupScreen" class="screen active">
+        <div class="card setup-card">
+            <div class="logo">
+                <span class="logo-o">O</span>
+                <span class="logo-x">X</span>
+                <span class="logo-o">O</span>
+            </div>
+            <h1>Tic Tac Toe</h1>
+            <p class="subtitle">Pick your mode &amp; play!</p>
+
+            <div class="mode-tabs">
+                <button class="tab active" id="tabLocal"   onclick="switchTab('local')">👥 Local</button>
+                <button class="tab"        id="tabAI"      onclick="switchTab('ai')">🤖 vs AI</button>
+                <button class="tab"        id="tabOnline"  onclick="switchTab('online')">🌐 Online</button>
+            </div>
+
+            <!-- Local / AI inputs -->
+            <div id="localInputs">
+                <div class="input-row">
+                    <div class="input-group">
+                        <label>⭕ Your Name</label>
+                        <input id="p1Name" type="text" placeholder="Player 1" maxlength="12" />
+                    </div>
+                    <div class="input-group" id="p2NameGroup">
+                        <label>❌ Friend's Name</label>
+                        <input id="p2Name" type="text" placeholder="Player 2" maxlength="12" />
+                    </div>
+                </div>
+                <button class="btn-primary" onclick="startLocalGame()">Play 🚀</button>
+            </div>
+
+            <!-- Online inputs -->
+            <div id="onlineInputs" class="hidden">
+                <div class="input-group">
+                    <label>⭕ Your Name</label>
+                    <input id="onlineName" type="text" placeholder="Enter your name" maxlength="12" />
+                </div>
+                <div class="online-actions">
+                    <button class="btn-primary btn-create" onclick="createRoom()">Create Room</button>
+                    <div class="or-divider"><span>or</span></div>
+                    <div class="join-row">
+                        <input id="roomCodeInput" type="text" placeholder="Room code" maxlength="6" />
+                        <button class="btn-join" onclick="joinRoom()">Join</button>
+                    </div>
+                </div>
             </div>
         </div>
-        <button id="reset-btn">Reset Game</button>
-    </main>
+    </div>
+
+    <!-- ═══════════════ SCREEN 2: ONLINE LOBBY ═══════════════ -->
+    <div id="lobbyScreen" class="screen">
+        <div class="card lobby-card">
+            <div id="lobbyContent">
+                <div class="lobby-icon" id="lobbyIcon">⏳</div>
+                <h2 id="lobbyTitle">Waiting for friend…</h2>
+                <p id="lobbySubtitle">Share this room code</p>
+                <div class="room-code-display" id="roomCodeDisplay">
+                    <span id="roomCodeText">––––––</span>
+                    <button class="copy-btn" onclick="copyCode()" title="Copy">📋</button>
+                </div>
+                <p class="lobby-hint" id="lobbyHint">Ask your friend to enter this code</p>
+                <div class="loader" id="lobbyLoader"></div>
+            </div>
+            <button class="btn-secondary" onclick="cancelLobby()">Cancel</button>
+        </div>
+    </div>
+
+    <!-- ═══════════════ SCREEN 3: GAME ═══════════════ -->
+    <div id="gameScreen" class="screen">
+
+        <!-- Scoreboard -->
+        <div class="scoreboard">
+            <div class="score-card" id="sc1">
+                <span class="sc-mark o-color">⭕</span>
+                <span class="sc-name" id="sc1Name">Player 1</span>
+                <span class="sc-score" id="sc1Score">0</span>
+            </div>
+            <div class="score-card draw-card">
+                <span class="sc-mark">🤝</span>
+                <span class="sc-name">Draw</span>
+                <span class="sc-score" id="scDraw">0</span>
+            </div>
+            <div class="score-card" id="sc2">
+                <span class="sc-mark x-color">❌</span>
+                <span class="sc-name" id="sc2Name">Player 2</span>
+                <span class="sc-score" id="sc2Score">0</span>
+            </div>
+        </div>
+
+        <!-- Turn banner -->
+        <div class="turn-banner" id="turnBanner">
+            <div class="turn-avatar" id="turnAvatar">⭕</div>
+            <span id="turnText">Player 1's turn</span>
+            <div class="turn-ping"></div>
+        </div>
+
+        <!-- Board -->
+        <div class="board" id="board">
+            <button class="cell" data-i="0"></button>
+            <button class="cell" data-i="1"></button>
+            <button class="cell" data-i="2"></button>
+            <button class="cell" data-i="3"></button>
+            <button class="cell" data-i="4"></button>
+            <button class="cell" data-i="5"></button>
+            <button class="cell" data-i="6"></button>
+            <button class="cell" data-i="7"></button>
+            <button class="cell" data-i="8"></button>
+        </div>
+
+        <!-- Online status badge -->
+        <div class="online-badge hidden" id="onlineBadge">
+            <div class="online-dot"></div>
+            <span id="onlineBadgeText">Connected</span>
+        </div>
+
+        <!-- Bottom controls -->
+        <div class="game-controls">
+            <button class="btn-icon" onclick="resetGame()" title="New Round">🔄 New Round</button>
+            <button class="btn-icon" onclick="goToMenu()"  title="Menu">🏠 Menu</button>
+        </div>
+    </div>
+
+    <!-- ═══════════════ RESULT OVERLAY ═══════════════ -->
+    <div id="resultOverlay" class="overlay hidden">
+        <div class="result-card">
+            <div id="resultBig">🎉</div>
+            <h2 id="resultTitle">Player 1 Wins!</h2>
+            <p id="resultSub">Great game</p>
+            <div class="result-actions">
+                <button class="btn-primary"   onclick="resetGame()">Play Again 🔄</button>
+                <button class="btn-secondary" onclick="goToMenu()">Menu 🏠</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confetti -->
+    <canvas id="confettiCanvas"></canvas>
+
+    <!-- PeerJS CDN -->
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
